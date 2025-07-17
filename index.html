@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Beat Bash</title>
+  <title>Beat Bash: Level Up</title>
   <style>
     body {
       font-family: 'Comic Sans MS', cursive, sans-serif;
       background-color: #111;
       color: #fff;
       text-align: center;
-      padding-top: 30px;
+      padding-top: 20px;
     }
     h1 {
       font-size: 2em;
@@ -44,14 +44,35 @@
       height: 10px;
       background-color: lime;
     }
-    #score {
+    #score, #level {
       margin-top: 20px;
       font-size: 1.2em;
+    }
+    #message {
+      margin-top: 10px;
+      font-size: 1em;
+      color: #ff0;
+    }
+    .controls {
+      margin-top: 20px;
+    }
+    .controls button {
+      width: 60px;
+      height: 60px;
+      margin: 5px;
+      font-size: 1.2em;
+      background-color: #444;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+    }
+    .controls button:active {
+      background-color: #888;
     }
   </style>
 </head>
 <body>
-  <h1>🎵 Beat Bash 🎵</h1>
+  <h1>🎵 Beat Bash: Level Up 🎵</h1>
   <div id="game">
     <div class="note" id="note-A"></div>
     <div class="note" id="note-S"></div>
@@ -60,10 +81,25 @@
     <div id="hit-zone"></div>
   </div>
   <div id="score">Score: 0</div>
+  <div id="level">Level: 1</div>
+  <div id="message"></div>
+
+  <div class="controls">
+    <button onclick="handleInput('a')">A</button>
+    <button onclick="handleInput('s')">S</button>
+    <button onclick="handleInput('d')">D</button>
+    <button onclick="handleInput('f')">F</button>
+  </div>
 
   <script>
     let score = 0;
+    let level = 1;
+    let dropSpeed = 1000;
+    let intervalId;
+
     const scoreDisplay = document.getElementById('score');
+    const levelDisplay = document.getElementById('level');
+    const messageDisplay = document.getElementById('message');
 
     function dropNote(noteId) {
       const note = document.getElementById(noteId);
@@ -78,15 +114,35 @@
       }, 50);
     }
 
-    setInterval(() => {
-      const notes = ['note-A', 'note-S', 'note-D', 'note-F'];
-      const pick = notes[Math.floor(Math.random() * notes.length)];
-      dropNote(pick);
-    }, 1000);
+    function startLevel() {
+      messageDisplay.textContent = '';
+      intervalId = setInterval(() => {
+        const notes = ['note-A', 'note-S', 'note-D', 'note-F'];
+        const pick = notes[Math.floor(Math.random() * notes.length)];
+        dropNote(pick);
+      }, dropSpeed);
+    }
 
-    document.addEventListener('keydown', (e) => {
+    function stopLevel() {
+      clearInterval(intervalId);
+    }
+
+    function nextLevel() {
+      stopLevel();
+      if (level < 5) {
+        level++;
+        dropSpeed -= 150;
+        levelDisplay.textContent = "Level: " + level;
+        messageDisplay.textContent = "Level Up!";
+        startLevel();
+      } else {
+        messageDisplay.textContent = "🎉 You beat all levels! 🎉";
+      }
+    }
+
+    function handleInput(key) {
       const keyMap = { 'a': 'note-A', 's': 'note-S', 'd': 'note-D', 'f': 'note-F' };
-      const noteId = keyMap[e.key.toLowerCase()];
+      const noteId = keyMap[key];
       const note = document.getElementById(noteId);
       if (note) {
         const top = parseInt(note.style.top);
@@ -94,9 +150,18 @@
           score += 10;
           scoreDisplay.textContent = "Score: " + score;
           note.style.top = '0px';
+          if (score >= level * 100 && level < 5) {
+            nextLevel();
+          }
         }
       }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      handleInput(e.key.toLowerCase());
     });
+
+    startLevel();
   </script>
 </body>
 </html>
